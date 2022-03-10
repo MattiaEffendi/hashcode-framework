@@ -16,20 +16,32 @@ $staminaRecoverForecast = [];
 $output = [];
 
 function calculateScoresV0(&$demons, &$player){
-    foreach($demons as $demon){
+    foreach($demons as &$demon){
         $demon->score = min($demon->staminaRecoveredAfter, $player->maxStamina - $player->stamina);
     }
 }
 
 function calculateScoresV1(&$demons, &$player){
-    foreach($demons as $demon){
+    foreach($demons as &$demon){
         $demon->score = min($demon->staminaRecoveredAfter, $player->maxStamina - $player->stamina) / $demon->turnsAfter;
     }
 }
 
-function calculateScoresV2(&$demons, &$player){
-    foreach($demons as $demon){
-        //
+function calculateScoresV2(&$demons, &$player, $currentTurn, $maxTurns){
+    foreach($demons as &$demon){
+        $partialScore = min($demon->staminaRecoveredAfter, $player->maxStamina - $player->stamina) / $demon->turnsAfter;
+        if($currentTurn / $maxTurns < 0.8){
+            $demon->score = $partialScore;
+        }
+
+        else {
+            $fragmentsAvailable = $maxTurns - $currentTurn;
+            $fragmentsSum = 0;
+            for($i = 0; $i < $fragmentsAvailable && $i < $demon->fragmentTurnsCount; $i++){
+                $fragmentsSum += $demon->futureFragments[$i];
+            }
+            $demon->score = $partialScore + ($fragmentsSum / $fragmentsAvailable);
+        }
     }
 }
 
@@ -39,8 +51,9 @@ function sortDemonsByScore(&$demons){
     });
 }
 
-function recoverStamina($staminaRecoverForecast, &$player, $currentTurn){
+function recoverStamina(&$staminaRecoverForecast, &$player, $currentTurn){
     $player->stamina += $staminaRecoverForecast[$currentTurn];
+    unset($staminaRecoverForecast[$currentTurn]);
     $player->stamina > $player->maxStamina ? $player->stamina = $player->maxStamina : $player->stamina;
 }
 
@@ -78,7 +91,7 @@ while($currentTurn <= $maxTurns){
 
     Log::out('Running turn ' . $currentTurn . '/' . $maxTurns);
 
-    calculateScoresV1($demons, $player);
+    calculateScoresV2($demons, $player, $currentTurn, $maxTurns);
 
     sortDemonsByScore($demons);
 
@@ -90,7 +103,6 @@ while($currentTurn <= $maxTurns){
    
     // Lower the stamina by the one needed to fight
     $player->stamina -= $consumedStamina;
-
     
     $currentTurn++;
 }
