@@ -30,6 +30,8 @@ class Project
     public int $expire;
     /** @var array[] */
     public array $roles = [];
+    /** @var array[] */
+    public array $orderedRoles = [];
     /** @var float */
     public float $score;
 }

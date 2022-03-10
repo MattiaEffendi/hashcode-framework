@@ -5,8 +5,10 @@ global $fileName;
 /** @var Demon[] */
 global $demons;
 
+/** @var int */
 global $demonsCount;
 
+/** @var int */
 global $maxTurns;
 
 use Utils\FileManager;
@@ -14,15 +16,22 @@ use Utils\FileManager;
 require_once '../../bootstrap.php';
 
 class Player {
+    /** @var int */
     public $stamina;
+    /** @var int */
     public $maxStamina;
 }
 
 class Demon {
+    /** @var int */
     public $staminaNeeded;
+    /** @var int */
     public $turnsAfter;
+    /** @var int */
     public $staminaRecoveredAfter;
+    /** @var int */
     public $fragmentTurnsCount;
+    /** @var int[] */
     public $futureFragments;
 }
 

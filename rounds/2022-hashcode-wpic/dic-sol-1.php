@@ -1,10 +1,11 @@
 <?php
 
 use Utils\ArrayUtils;
+use Utils\Collection;
 use Utils\File;
 use Utils\Log;
 
-$fileName = 'b';
+$fileName = 'c';
 
 /* Reader */
 include_once 'reader.php';
@@ -33,8 +34,6 @@ function calculateScores(){
         
         $project->score = (($project->award + $delay) / $project->duration) / ($scarto + 1);
 
-        
-        //ArrayUtils::array_keysort($project->roles, 'level');
     }
     
     $sortedProjects = $projects;
@@ -50,11 +49,21 @@ function assignProject($project, $chosenContributors){
     global $currentProjects;
     global $projects;
     global $output;
+    global $skills;
     $currentProjects[$project->name] = [
         'project' => $project,
         'days_left' => $project->duration,
         'contribuents' => $chosenContributors
     ];
+    $i = 0;
+    foreach($project->roles as $skill){
+        foreach($skills[$skill['skill']] as &$contribuentSkill){
+            if($contribuentSkill['contributor'] == $chosenContributors[$i] && $contribuentSkill['level'] <= $skill['level']){
+                $contribuentSkill['level']++;
+            }
+            $i++;
+        }
+    }
     $output[] = [
         'project_name' => $project->name,
         'contribuents' => implode(' ', $chosenContributors),
@@ -64,12 +73,14 @@ function assignProject($project, $chosenContributors){
 }
 
 function occupyPeople($people){
+    global $availableContributors;
     foreach($people as $contribuent){
         $availableContributors[$contribuent] = false;
     }
 }
 
 function freePeople($people){
+    global $availableContributors;
     foreach($people as $contribuent){
         $availableContributors[$contribuent] = true;
     }
@@ -77,7 +88,7 @@ function freePeople($people){
 
 function endProject($project){
     global $currentProjects;
-    freePeople($project['contributents']);
+    freePeople($project['contribuents']);
     unset($currentProjects[$project['project']->name]);
 }
 
@@ -90,11 +101,11 @@ function checkEndingProjects(){
         break;
     }
     $passingDays = $fProject['days_left'];
-    foreach($currentProjects as $project){
+    foreach($currentProjects as &$project){
         if($project['days_left'] == $passingDays){
             endProject($project);
         }else{
-            $project['days_left'] -= $passingDays;
+            $project['days_left'] = $project['days_left'] - $passingDays;
         }
     }
     $currentDay += $passingDays;
@@ -123,6 +134,15 @@ foreach($contributors as $contributor){
     }
 }
 
+foreach($projects as $project){
+   
+    $project->orderedRoles =  $project->roles;
+        
+    usort($project->orderedRoles, function($a, $b){
+        return $b['level'] <=> $a['level'];
+    });
+}
+
 calculateScores();
 
 
@@ -139,7 +159,7 @@ while(count($projects) > 0){
 
     foreach($sortedProjects as $project){
         $chosenContributors = [];
-        foreach($project->roles as $requestedSkill){
+        foreach($project->orderedRoles as $requestedSkill){
             $skill = $skills[$requestedSkill['skill']];
             $simplyTheBest = $skills[$requestedSkill['skill']][count($skills[$requestedSkill['skill']]) - 1];
 
@@ -147,21 +167,39 @@ while(count($projects) > 0){
                 continue;
             }
 
+            $requestedSkillLevel = $requestedSkill['level'];
             foreach($skill as $contributorForSkill){
-                if($contributorForSkill['level'] >= $requestedSkill['level'] && $availableContributors[$contributorForSkill['contributor']] && !in_array($contributorForSkill['contributor'], $chosenContributors)){
-                    $chosenContributors[] = $contributorForSkill['contributor'];
-                    //Log::out('Assigned ' . $contributorForSkill['contributor'] . ' to ' . $project->name . ' for ' . $requestedSkill['skill'] . ' level ' . $requestedSkill['level']);
+                foreach($chosenContributors as $chosenContributor){
+                    if($chosenContributor == $contributorForSkill['contributor'] && $contributorForSkill['level'] > $requestedSkill['level']){
+                        $requestedSkillLevel = $requestedSkillLevel - 1;
+                        //echo 'mentor finded' . PHP_EOL;
+                        break;
+                    }
+                }
+            }
+
+            foreach($skill as $contributorForSkill){
+
+                if($chosenContributors[$contributorForSkill['contributor']] && $contributorForSkill['level'] > $requestedSkill['level']){
+                    break;
+                }
+
+                if($contributorForSkill['level'] >= $requestedSkillLevel && $availableContributors[$contributorForSkill['contributor']] && !in_array($contributorForSkill['contributor'], $chosenContributors)){
+                    $chosenContributors[array_search($requestedSkill['skill'],array_column($project->roles, 'skill'))] = $contributorForSkill['contributor'];
                     break;
                 }
             }
             
         }
+        ksort($chosenContributors);
         if(count($chosenContributors) == count($project->roles)){
             assignProject($project, $chosenContributors);
         }
     }
 
     ArrayUtils::array_keysort($currentProjects, 'days_left', SORT_ASC);
+
+//    echo count($currentProjects) . PHP_EOL;
 
     if(count($currentProjects) == 0){   
         output($output);
