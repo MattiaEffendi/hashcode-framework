@@ -11,6 +11,7 @@ global $demonsCount;
 /** @var int */
 global $maxTurns;
 
+use Utils\File;
 use Utils\FileManager;
 
 require_once '../../bootstrap.php';
@@ -23,6 +24,10 @@ class Player {
 }
 
 class Demon {
+    /** @var int */
+    public $id;
+    /** @var float */
+    public $score;
     /** @var int */
     public $staminaNeeded;
     /** @var int */
@@ -51,6 +56,8 @@ $demonsCount = $infoRow[3];
 for($c = 0; $c < $demonsCount; $c++){
     $demon = new Demon();
     $demonRow = explode(' ', $content[$fileRow++]);
+    $demon->id = $c;
+    $demon->score = 0;
     $demon->staminaNeeded = (int)$demonRow[0];
     $demon->turnsAfter = (int)$demonRow[1];
     $demon->staminaRecoveredAfter = (int)$demonRow[2];
@@ -61,4 +68,20 @@ for($c = 0; $c < $demonsCount; $c++){
     }
     $demon->futureFragments = $futureFragments;
     $demons[] = $demon;
+}
+
+class Output {
+    public $out = [];
+
+    public function add($value){
+        $this->out[] = $value;
+    }
+
+    public function save($fileName){
+        $outTxt = '';
+        foreach($this->out as $outputRow){
+            $outTxt .= $outputRow . "\n";
+        }
+        File::write($fileName, $outTxt);
+    }
 }
