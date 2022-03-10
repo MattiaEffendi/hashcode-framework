@@ -5,7 +5,7 @@ use Utils\Collection;
 use Utils\File;
 use Utils\Log;
 
-$fileName = '03';
+$fileName = '04';
 
 /* Reader */
 include_once 'reader.php';
@@ -15,15 +15,21 @@ $staminaRecoverForecast = [];
 
 $output = [];
 
-function calculateScores(&$demons, &$player){
+function calculateScoresV0(&$demons, &$player){
     foreach($demons as $demon){
         $demon->score = min($demon->staminaRecoveredAfter, $player->maxStamina - $player->stamina);
     }
 }
 
+function calculateScoresV1(&$demons, &$player){
+    foreach($demons as $demon){
+        $demon->score = min($demon->staminaRecoveredAfter, $player->maxStamina - $player->stamina) / $demon->turnsAfter;
+    }
+}
+
 function calculateScoresV2(&$demons, &$player){
     foreach($demons as $demon){
-        $demon->score = min($demon->staminaRecoveredAfter, $player->maxStamina - $player->stamina);
+        //
     }
 }
 
@@ -72,7 +78,7 @@ while($currentTurn <= $maxTurns){
 
     Log::out('Running turn ' . $currentTurn . '/' . $maxTurns);
 
-    calculateScores($demons, $player);
+    calculateScoresV1($demons, $player);
 
     sortDemonsByScore($demons);
 
