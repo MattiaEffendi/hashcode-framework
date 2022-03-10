@@ -5,7 +5,7 @@ use Utils\Collection;
 use Utils\File;
 use Utils\Log;
 
-$fileName = '03';
+$fileName = '04';
 
 /* Reader */
 include_once 'reader.php';
@@ -19,6 +19,17 @@ function calculateScoresV0(&$demons, &$player){
     foreach($demons as &$demon){
         $demon->score = min($demon->staminaRecoveredAfter, $player->maxStamina - $player->stamina);
     }
+}
+
+function calculateScoresV01(&$demons, &$player, &$currentTurn, &$maxTurns){
+    foreach($demons as &$demon){
+        $fragmentsAvailable = $maxTurns - $currentTurn;
+        $fragmentsSum = 0;
+        for($i = 0; $i < $fragmentsAvailable && $i < $demon->fragmentTurnsCount; $i++){
+            $fragmentsSum += $demon->futureFragments[$i];
+        }
+        $demon->score = $$fragmentsSum / $fragmentsAvailable;
+}
 }
 
 function calculateScoresV1(&$demons, &$player){
@@ -82,7 +93,7 @@ function fightBestDemon(&$demons, &$player, &$staminaRecoverForecast, &$currentT
     }
     if(count($staminaRecoverForecast) == 0){
         Log::out('Deadlock! We have ' . $player->stamina . ' stamina and no stamina to get.');
-        $currentTurn = $maxTurns;
+        $currentTurn = $maxTurns + 1;
     }
 }
 
@@ -95,7 +106,7 @@ while($currentTurn <= $maxTurns){
 
     Log::out('[Output '. $fileName . '] Running turn ' . $currentTurn . '/' . $maxTurns);
 
-    calculateScoresV2($demons, $player, $currentTurn, $maxTurns);
+    calculateScoresV01($demons, $player, $currentTurn, $maxTurns);
 
     sortDemonsByScore($demons);
 
