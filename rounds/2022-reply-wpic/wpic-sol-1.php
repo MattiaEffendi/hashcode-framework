@@ -21,6 +21,12 @@ function calculateScores(&$demons, &$player){
     }
 }
 
+function calculateScoresV2(&$demons, &$player){
+    foreach($demons as $demon){
+        $demon->score = min($demon->staminaRecoveredAfter, $player->maxStamina - $player->stamina);
+    }
+}
+
 function sortDemonsByScore(&$demons){
     usort($demons, function($a, $b){
         return $b->score - $a->score;
@@ -64,6 +70,8 @@ function saveOutput($fileName, $output){
 
 while($currentTurn <= $maxTurns){
 
+    Log::out('Running turn ' . $currentTurn . '/' . $maxTurns);
+
     calculateScores($demons, $player);
 
     sortDemonsByScore($demons);
@@ -77,6 +85,7 @@ while($currentTurn <= $maxTurns){
     // Lower the stamina by the one needed to fight
     $player->stamina -= $consumedStamina;
 
+    
     $currentTurn++;
 }
 
