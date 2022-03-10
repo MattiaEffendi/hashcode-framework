@@ -5,7 +5,7 @@ use Utils\Collection;
 use Utils\File;
 use Utils\Log;
 
-$fileName = '04';
+$fileName = '03';
 
 /* Reader */
 include_once 'reader.php';
@@ -57,7 +57,7 @@ function recoverStamina(&$staminaRecoverForecast, &$player, $currentTurn){
     $player->stamina > $player->maxStamina ? $player->stamina = $player->maxStamina : $player->stamina;
 }
 
-function fightBestDemon(&$demons, &$player, &$staminaRecoverForecast, $currentTurn){
+function fightBestDemon(&$demons, &$player, &$staminaRecoverForecast, &$currentTurn, $maxTurns){
     global $output;
     $key = 0;
     foreach($demons as &$demon){
@@ -80,6 +80,10 @@ function fightBestDemon(&$demons, &$player, &$staminaRecoverForecast, $currentTu
         }
         $key++;
     }
+    if(count($staminaRecoverForecast) == 0){
+        Log::out('Deadlock! We have ' . $player->stamina . ' stamina and no stamina to get.');
+        $currentTurn = $maxTurns;
+    }
 }
 
 function saveOutput($fileName, $output){
@@ -99,7 +103,7 @@ while($currentTurn <= $maxTurns){
     recoverStamina($staminaRecoverForecast, $player, $currentTurn);
 
     // Fight the best demon 
-    $consumedStamina = fightBestDemon($demons, $player, $staminaRecoverForecast, $currentTurn);
+    $consumedStamina = fightBestDemon($demons, $player, $staminaRecoverForecast, $currentTurn, $maxTurns);
    
     // Lower the stamina by the one needed to fight
     $player->stamina -= $consumedStamina;
