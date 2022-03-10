@@ -28,7 +28,7 @@ function calculateScoresV01(&$demons, &$player, &$currentTurn, &$maxTurns){
         for($i = 0; $i < $fragmentsAvailable && $i < $demon->fragmentTurnsCount; $i++){
             $fragmentsSum += $demon->futureFragments[$i];
         }
-        $demon->score = $$fragmentsSum / $fragmentsAvailable;
+        $demon->score = $fragmentsSum / $fragmentsAvailable;
 }
 }
 
@@ -40,8 +40,8 @@ function calculateScoresV1(&$demons, &$player){
 
 function calculateScoresV2(&$demons, &$player, $currentTurn, $maxTurns){
     foreach($demons as &$demon){
-        $partialScore = min($demon->staminaRecoveredAfter, $player->maxStamina - $player->stamina) / $demon->turnsAfter;
-        if($currentTurn / $maxTurns < 0.45){
+        $partialScore = min($demon->staminaRecoveredAfter, $player->maxStamina - $player->stamina) / $demon->turnsAfter * pow($maxTurns - $currentTurn - $demon->turnsAfter, 0.2);
+        if($currentTurn / $maxTurns < 0.5){
             $demon->score = $partialScore;
         }
 
