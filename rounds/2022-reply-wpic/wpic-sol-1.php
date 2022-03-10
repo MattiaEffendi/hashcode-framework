@@ -41,7 +41,7 @@ function calculateScoresV1(&$demons, &$player){
 function calculateScoresV2(&$demons, &$player, $currentTurn, $maxTurns){
     foreach($demons as &$demon){
         $partialScore = min($demon->staminaRecoveredAfter, $player->maxStamina - $player->stamina) / $demon->turnsAfter;
-        if($currentTurn / $maxTurns < 0.5){
+        if($currentTurn / $maxTurns < 0){
             $demon->score = $partialScore;
         }
 
