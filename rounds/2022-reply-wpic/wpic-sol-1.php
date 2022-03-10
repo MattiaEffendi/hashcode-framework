@@ -89,7 +89,7 @@ function saveOutput($fileName, $output){
 
 while($currentTurn <= $maxTurns){
 
-    Log::out('Running turn ' . $currentTurn . '/' . $maxTurns);
+    Log::out('[Output '. $fileName . '] Running turn ' . $currentTurn . '/' . $maxTurns);
 
     calculateScoresV2($demons, $player, $currentTurn, $maxTurns);
 
