@@ -106,7 +106,7 @@ while($currentTurn <= $maxTurns){
 
     Log::out('[Output '. $fileName . '] Running turn ' . $currentTurn . '/' . $maxTurns);
 
-    calculateScoresV01($demons, $player, $currentTurn, $maxTurns);
+    calculateScoresV2($demons, $player, $currentTurn, $maxTurns);
 
     sortDemonsByScore($demons);
 
